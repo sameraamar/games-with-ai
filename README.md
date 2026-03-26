@@ -26,12 +26,12 @@ This repository now includes a root homepage at `index.html`, so it can be publi
 
 After enabling Pages, the site should be available at:
 
-`https://YOUR-USERNAME.github.io/YOUR-REPO/`
+`https://sameraamar.github.io/games-with-ai/`
 
 The current game routes will be:
 
-- `https://YOUR-USERNAME.github.io/YOUR-REPO/LearnHebrew/LearnHebrew.html`
-- `https://YOUR-USERNAME.github.io/YOUR-REPO/Wolfstien3D/`
+- `https://sameraamar.github.io/games-with-ai/LearnHebrew/LearnHebrew.html`
+- `https://sameraamar.github.io/games-with-ai/Wolfstien3D/`
 
 ## How To Enable Pages
 
