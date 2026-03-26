@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolfenstein 3D — Recreated</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        #gameCanvas {
+            cursor: none;
+            image-rendering: auto;
+        }
+        #startScreen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 10;
+        }
+        #startScreen h1 {
+            color: #c00;
+            font-size: 48px;
+            text-shadow: 3px 3px 0 #600;
+            margin-bottom: 10px;
+        }
+        #startScreen h2 {
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        #startScreen .menu-item {
+            color: #fff;
+            font-size: 24px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+        #startScreen .menu-item:hover {
+            color: #c00;
+        }
+        #startScreen .controls {
+            color: #666;
+            font-size: 14px;
+            margin-top: 40px;
+            text-align: center;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>WOLFENSTEIN 3D</h1>
+        <h2>Recreated in JavaScript</h2>
+        <div class="menu-item" onclick="startGame()">► NEW GAME</div>
+        <div class="controls">
+            WASD / Arrow Keys — Move<br>
+            Mouse — Look Around<br>
+            Left Click — Shoot<br>
+            E — Open Doors<br>
+            SPACE — Interact<br>
+            M — Toggle Minimap
+        </div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <script src="game.js"></script>
+</body>
+</html>
