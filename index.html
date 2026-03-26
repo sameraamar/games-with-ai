@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games With AI</title>
+    <style>
+        :root {
+            --paper: #f3efe3;
+            --ink: #1f2430;
+            --muted: #5f6778;
+            --card: rgba(255, 252, 245, 0.8);
+            --card-border: rgba(31, 36, 48, 0.12);
+            --shadow: rgba(31, 36, 48, 0.16);
+            --olive: #586b3f;
+            --rust: #a14b2b;
+            --lake: #2a6f97;
+            --gold: #c48a2d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(196, 138, 45, 0.18), transparent 24%),
+                radial-gradient(circle at right, rgba(42, 111, 151, 0.14), transparent 30%),
+                linear-gradient(180deg, #f8f4ea, var(--paper));
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.18;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 20px 20px;
+            mask-image: radial-gradient(circle at center, black, transparent 85%);
+        }
+
+        main {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 56px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .hero-copy,
+        .hero-note,
+        .game-card,
+        .publish-card {
+            border: 1px solid var(--card-border);
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 18px 50px var(--shadow);
+        }
+
+        .hero-copy {
+            padding: 32px;
+        }
+
+        .kicker {
+            margin: 0 0 14px;
+            font-size: 12px;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--rust);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(44px, 8vw, 82px);
+            line-height: 0.95;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .hero-copy p {
+            margin: 18px 0 0;
+            font-size: 20px;
+            line-height: 1.65;
+            color: var(--muted);
+            max-width: 42rem;
+        }
+
+        .hero-note {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background:
+                linear-gradient(160deg, rgba(88, 107, 63, 0.16), rgba(255, 252, 245, 0.82)),
+                var(--card);
+        }
+
+        .hero-note h2,
+        .section-head h2,
+        .publish-card h2 {
+            margin: 0 0 12px;
+            font-size: 24px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero-note p,
+        .publish-card p,
+        .publish-card li,
+        .meta,
+        .game-card p {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin: 42px 0 18px;
+        }
+
+        .section-head p {
+            margin: 0;
+            max-width: 34rem;
+            color: var(--muted);
+        }
+
+        .games {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .game-card {
+            position: relative;
+            overflow: hidden;
+            padding: 26px;
+        }
+
+        .game-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .game-card.hebrew::before {
+            background: linear-gradient(135deg, rgba(42, 111, 151, 0.18), transparent 45%);
+        }
+
+        .game-card.wolf::before {
+            background: linear-gradient(135deg, rgba(161, 75, 43, 0.18), transparent 45%);
+        }
+
+        .badge {
+            display: inline-block;
+            margin-bottom: 16px;
+            padding: 7px 12px;
+            font-size: 12px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            border: 1px solid rgba(31, 36, 48, 0.12);
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .game-card h3 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .game-card p {
+            margin: 0 0 18px;
+            font-size: 17px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .stats span {
+            padding: 7px 10px;
+            border: 1px solid rgba(31, 36, 48, 0.12);
+            background: rgba(255, 255, 255, 0.58);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .button,
+        .button-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 18px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 13px;
+            border: 1px solid rgba(31, 36, 48, 0.14);
+            transition: transform 0.18s ease, background-color 0.18s ease;
+        }
+
+        .button:hover,
+        .button-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .button {
+            color: #fffdf6;
+            background: linear-gradient(135deg, var(--ink), #3a4253);
+        }
+
+        .button-secondary {
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.62);
+        }
+
+        .publish-card {
+            margin-top: 24px;
+            padding: 26px;
+        }
+
+        .publish-card ol {
+            margin: 14px 0 0 22px;
+            padding: 0;
+        }
+
+        footer {
+            margin-top: 34px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(31, 36, 48, 0.12);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        code {
+            font-family: "Courier New", monospace;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 900px) {
+            .hero,
+            .games {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main {
+                width: min(100% - 20px, 1120px);
+                padding-top: 18px;
+            }
+
+            .hero-copy,
+            .hero-note,
+            .game-card,
+            .publish-card {
+                padding: 20px;
+            }
+
+            .hero-copy p {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grain"></div>
+    <main>
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="kicker">Static Browser Games</p>
+                <h1>Games With AI</h1>
+                <p>This repository collects small browser games that run as plain static files. The goal is simple: keep them lightweight, easy to host, and playable straight from GitHub Pages without a backend.</p>
+            </div>
+            <aside class="hero-note">
+                <div>
+                    <h2>Play Model</h2>
+                    <p>These games are meant to be served as static pages. Once GitHub Pages is enabled for the repository, this root page becomes the homepage and links into each game folder.</p>
+                </div>
+                <div class="meta">
+                    <span>HTML First</span>
+                    <span>Static Hosting</span>
+                    <span>GitHub Pages Ready</span>
+                </div>
+            </aside>
+        </section>
+
+        <section>
+            <div class="section-head">
+                <h2>Playable Now</h2>
+                <p>Each game below opens from its own folder. The first action button is the path GitHub Pages will use.</p>
+            </div>
+
+            <div class="games">
+                <article class="game-card hebrew">
+                    <div class="badge">Learn / Language</div>
+                    <h3>Learn Hebrew</h3>
+                    <p>A single-file learning game with letter drills, word matching, numbers, memory play, saved progress, and browser speech synthesis with fallback transliteration.</p>
+                    <div class="stats">
+                        <span>Single HTML File</span>
+                        <span>Speech API</span>
+                        <span>Mobile Friendly</span>
+                    </div>
+                    <div class="actions">
+                        <a class="button" href="LearnHebrew/LearnHebrew.html">Play Learn Hebrew</a>
+                        <a class="button-secondary" href="LearnHebrew/">Open Folder</a>
+                    </div>
+                </article>
+
+                <article class="game-card wolf">
+                    <div class="badge">Action / Raycaster</div>
+                    <h3>Iron Wolf 3D</h3>
+                    <p>A retro shooter built with canvas and local JavaScript. It relies on static assets only, with fullscreen, pointer lock, local score storage, and browser audio.</p>
+                    <div class="stats">
+                        <span>HTML + JS</span>
+                        <span>Canvas</span>
+                        <span>Desktop Best</span>
+                    </div>
+                    <div class="actions">
+                        <a class="button" href="Wolfstien3D/">Play Iron Wolf 3D</a>
+                        <a class="button-secondary" href="Wolfstien3D/index.html">Open Entry File</a>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="publish-card">
+            <h2>Publish On GitHub Pages</h2>
+            <p>In the repository settings, enable Pages and publish from the main branch root. GitHub will serve this file as the homepage at <code>https://YOUR-USERNAME.github.io/YOUR-REPO/</code>.</p>
+            <ol>
+                <li>Push this repository to GitHub.</li>
+                <li>Open repository settings and go to Pages.</li>
+                <li>Choose Deploy from a branch.</li>
+                <li>Select the main branch and the root folder.</li>
+                <li>Wait for the Pages URL to be generated.</li>
+            </ol>
+        </section>
+
+        <footer>
+            Static hosting only. No server runtime is required for the current games.
+        </footer>
+    </main>
+</body>
+</html>
