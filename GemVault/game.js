@@ -20,6 +20,7 @@ const ui = {
     selectionPulse: document.getElementById("selectionPulse"),
     statusBanner: document.getElementById("statusBanner"),
     turnStatus: document.getElementById("turnStatus"),
+    vaultHeader: document.querySelector(".vault-header"),
     vaultSubtitle: document.getElementById("vaultSubtitle"),
     hudMode: document.getElementById("hudMode"),
     hudRound: document.getElementById("hudRound"),
@@ -33,6 +34,8 @@ const ui = {
     missesValue: document.getElementById("missesValue"),
     turnValue: document.getElementById("turnValue"),
     historyList: document.getElementById("historyList"),
+    mobileTabs: Array.from(document.querySelectorAll("[data-mobile-nav]")),
+    mobilePanels: Array.from(document.querySelectorAll("[data-mobile-panel]")),
 };
 
 const state = {
@@ -61,7 +64,27 @@ const state = {
         { name: "Player One", score: 0, turnsTaken: 0 },
         { name: "Player Two", score: 0, turnsTaken: 0 },
     ],
+    mobilePanel: "setup",
 };
+
+function isMobileLayout() {
+    return window.matchMedia("(max-width: 860px)").matches;
+}
+
+function setMobilePanel(panel, shouldScroll = false) {
+    state.mobilePanel = panel;
+    for (const tab of ui.mobileTabs) {
+        const active = tab.dataset.mobileNav === panel;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+    for (const section of ui.mobilePanels) {
+        section.classList.toggle("is-mobile-active", section.dataset.mobilePanel === panel);
+    }
+    if (shouldScroll && isMobileLayout()) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+}
 
 const difficultyProfiles = {
     easy: {
@@ -247,10 +270,13 @@ function renderHistory() {
 
 function syncBoardLayout() {
     const stageRect = ui.vaultStage.getBoundingClientRect();
+    const headerRect = ui.vaultHeader.getBoundingClientRect();
     const statusRect = ui.turnStatus.getBoundingClientRect();
-    const topInset = Math.ceil(statusRect.bottom - stageRect.top + 18);
+    const isPhone = window.innerWidth <= 640;
+    const headerBottom = Math.max(headerRect.bottom, statusRect.bottom);
+    const topInset = Math.ceil(headerBottom - stageRect.top + (isPhone ? 148 : 18));
     const sideInset = window.innerWidth <= 640 ? 18 : 26;
-    const bottomInset = window.innerWidth <= 640 ? 24 : 32;
+    const bottomInset = window.innerWidth <= 640 ? 12 : 32;
     ui.vaultStage.style.setProperty("--board-top", `${topInset}px`);
     ui.vaultStage.style.setProperty("--board-side", `${sideInset}px`);
     ui.vaultStage.style.setProperty("--board-bottom", `${bottomInset}px`);
@@ -276,26 +302,39 @@ function calculateSlots(count) {
     const boardRect = ui.board.getBoundingClientRect();
     const width = boardRect.width || ui.board.clientWidth || 900;
     const height = boardRect.height || ui.board.clientHeight || 420;
-    const boxWidth = width < 620 ? 112 : 140;
-    const boxHeight = width < 620 ? 132 : 156;
-    const rows = count <= 5 ? 1 : 2;
-    const cols = Math.ceil(count / rows);
-    const rowGap = rows === 1 ? 0 : clamp((height - boxHeight * rows) / (rows + 1), 18, 40);
-    const colGap = clamp((width - boxWidth * cols) / (cols + 1), 12, 32);
+    const isPhone = width <= 420;
+    const isCompact = width < 620;
+    const cols = isPhone
+        ? Math.min(2, count)
+        : count <= 5
+            ? Math.min(count, 3)
+            : Math.min(4, Math.ceil(count / 2));
+    const rows = Math.ceil(count / cols);
+    const preferredGap = isPhone ? 10 : isCompact ? 12 : 18;
+    const computedBoxWidth = Math.floor((width - preferredGap * (cols + 1)) / cols);
+    const boxWidth = clamp(computedBoxWidth, isPhone ? 92 : isCompact ? 102 : 120, isPhone ? 104 : isCompact ? 116 : 140);
+    const boxHeight = Math.round(boxWidth * (isPhone ? 1.12 : 1.14));
+    const colGap = cols === 1
+        ? 0
+        : Math.max(preferredGap, Math.floor((width - boxWidth * cols) / (cols + 1)));
+    const rowGap = rows === 1
+        ? 0
+        : clamp((height - boxHeight * rows) / (rows + 1), isPhone ? 10 : 16, isPhone ? 24 : 40);
     const slots = [];
     for (let row = 0; row < rows; row += 1) {
-        const itemsInRow = row === 0 ? Math.ceil(count / rows) : Math.floor(count / rows);
+        const rowStart = row * cols;
+        const itemsInRow = Math.min(cols, count - rowStart);
         const effectiveCols = itemsInRow || cols;
         const totalWidth = effectiveCols * boxWidth + (effectiveCols - 1) * colGap;
         const startX = (width - totalWidth) / 2;
         for (let col = 0; col < effectiveCols; col += 1) {
-            const index = row * Math.ceil(count / rows) + col;
+            const index = rowStart + col;
             if (index >= count) {
                 continue;
             }
             slots[index] = {
                 left: Math.round(startX + col * (boxWidth + colGap)),
-                top: Math.round(24 + row * (boxHeight + rowGap)),
+                top: Math.round((isPhone ? 92 : 24) + row * (boxHeight + rowGap)),
                 width: boxWidth,
                 height: boxHeight,
             };
@@ -738,6 +777,7 @@ function startRun() {
     applyUiSettings();
     resetRunState();
     hideOverlay();
+    setMobilePanel("play", true);
     pushHistory(`${state.mode === "single" ? "Solo" : "Two-player"} treasure hunt started.`, "neutral");
     setStatus("Treasure time is starting.", "The gem peek begins in just a moment.");
     updateHud();
@@ -746,6 +786,7 @@ function startRun() {
 
 function continueHotSeatTurn() {
     hideOverlay();
+    setMobilePanel("play", true);
     startRound();
 }
 
@@ -799,6 +840,7 @@ function resetBestScore() {
 }
 
 function onResize() {
+    setMobilePanel(state.mobilePanel);
     syncBoardLayout();
     if (!state.boxes.length) {
         return;
@@ -811,6 +853,9 @@ function bindUi() {
     ui.overlayStartButton.addEventListener("click", startRun);
     ui.overlayContinueButton.addEventListener("click", continueHotSeatTurn);
     ui.resetStatsButton.addEventListener("click", resetBestScore);
+    ui.mobileTabs.forEach(tab => {
+        tab.addEventListener("click", () => setMobilePanel(tab.dataset.mobileNav, true));
+    });
     [ui.modeSelect, ui.difficultySelect, ui.playStyleSelect, ui.effectsSelect, ui.soundToggle].forEach(control => {
         control.addEventListener("change", () => {
             applyUiSettings();
@@ -826,6 +871,7 @@ function bindUi() {
 
 function init() {
     restoreSettings();
+    setMobilePanel(state.mobilePanel);
     syncBoardLayout();
     updateHud();
     renderHistory();

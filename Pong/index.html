@@ -196,6 +196,18 @@
             align-items: start;
         }
 
+        .mobile-nav {
+            display: none;
+        }
+
+        .mobile-note {
+            display: none;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
         .panel,
         .arena-shell,
         .overlay-card {
@@ -397,6 +409,10 @@
             min-height: min(74vh, 840px);
         }
 
+        .rotate-device {
+            display: none;
+        }
+
         .arena-meta {
             display: grid;
             gap: 14px;
@@ -540,6 +556,10 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        .touch-zone.mobile-hidden {
+            display: block;
+        }
+
         .touch-btn {
             min-height: 62px;
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -639,6 +659,146 @@
             .canvas-wrap {
                 min-height: auto;
             }
+
+            .mobile-nav {
+                position: sticky;
+                top: 10px;
+                z-index: 3;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
+                margin: 0 0 14px;
+                padding: 8px;
+                border-radius: 20px;
+                background: rgba(8, 18, 35, 0.72);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(18px);
+            }
+
+            .mobile-page-btn {
+                min-height: 42px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--muted);
+                font: inherit;
+                font-size: 12px;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+            }
+
+            .mobile-page-btn.active {
+                background: linear-gradient(135deg, rgba(255, 215, 106, 0.28), rgba(255, 157, 125, 0.26));
+                color: var(--text);
+                border-color: rgba(255, 255, 255, 0.22);
+            }
+
+            .layout {
+                display: block;
+            }
+
+            .left-stack,
+            .arena-shell,
+            .right-stack {
+                display: none;
+            }
+
+            .left-stack.mobile-page-active,
+            .arena-shell.mobile-page-active,
+            .right-stack.mobile-page-active {
+                display: grid;
+                gap: 18px;
+            }
+
+            .mobile-note {
+                display: block;
+            }
+        }
+
+        @media (max-width: 820px) and (orientation: portrait) {
+            .arena-shell.mobile-page-active .arena-meta,
+            .arena-shell.mobile-page-active .touch-controls {
+                display: none;
+            }
+
+            .arena-shell.mobile-page-active .canvas-wrap {
+                min-height: min(56vh, 420px);
+            }
+
+            .arena-shell.mobile-page-active canvas,
+            .arena-shell.mobile-page-active .overlay {
+                opacity: 0.16;
+                pointer-events: none;
+            }
+
+            .arena-shell.mobile-page-active .rotate-device {
+                position: absolute;
+                inset: 0;
+                z-index: 2;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+                background: rgba(4, 9, 18, 0.68);
+                backdrop-filter: blur(14px);
+            }
+
+            .rotate-device-card {
+                width: min(360px, 100%);
+                padding: 24px 20px;
+                border-radius: 28px;
+                text-align: center;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: var(--shadow);
+            }
+
+            .rotate-device-card strong {
+                display: block;
+                margin-bottom: 10px;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 1.8rem;
+                letter-spacing: -0.04em;
+            }
+
+            .rotate-device-card p {
+                margin: 0;
+                color: var(--muted);
+                line-height: 1.6;
+            }
+        }
+
+        @media (max-width: 820px) and (orientation: landscape) {
+            .page {
+                width: min(100% - 12px, 1320px);
+                padding: 10px 0 12px;
+            }
+
+            .arena-shell.mobile-page-active {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .arena-shell.mobile-page-active .arena-meta {
+                margin-bottom: 8px;
+            }
+
+            .arena-shell.mobile-page-active .canvas-wrap {
+                min-height: auto;
+            }
+
+            .arena-shell.mobile-page-active .touch-controls {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+            .arena-shell.mobile-page-active .touch-zone {
+                padding: 10px 12px;
+            }
+
+            .arena-shell.mobile-page-active .touch-btn {
+                min-height: 54px;
+            }
         }
 
         @media (max-width: 640px) {
@@ -666,6 +826,145 @@
             .touch-controls {
                 display: grid;
             }
+
+            .touch-zone.mobile-hidden {
+                display: none;
+            }
+        }
+
+        body.mobile-device .page {
+            width: min(100% - 16px, 1320px);
+        }
+
+        body.mobile-device .topbar,
+        body.mobile-device .button-row,
+        body.mobile-device .scoreboard,
+        body.mobile-device .status-grid,
+        body.mobile-device .left-stack,
+        body.mobile-device .right-stack,
+        body.mobile-device .touch-controls {
+            grid-template-columns: 1fr;
+            display: grid;
+        }
+
+        body.mobile-device .topbar {
+            display: grid;
+        }
+
+        body.mobile-device .canvas-wrap {
+            min-height: auto;
+        }
+
+        body.mobile-device .mobile-nav {
+            position: sticky;
+            top: 10px;
+            z-index: 3;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 8px;
+            border-radius: 20px;
+            background: rgba(8, 18, 35, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(18px);
+        }
+
+        body.mobile-device .mobile-page-btn {
+            min-height: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            font: inherit;
+            font-size: 12px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        body.mobile-device .mobile-page-btn.active {
+            background: linear-gradient(135deg, rgba(255, 215, 106, 0.28), rgba(255, 157, 125, 0.26));
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        body.mobile-device .layout {
+            display: block;
+        }
+
+        body.mobile-device .left-stack,
+        body.mobile-device .arena-shell,
+        body.mobile-device .right-stack {
+            display: none;
+        }
+
+        body.mobile-device .left-stack.mobile-page-active,
+        body.mobile-device .arena-shell.mobile-page-active,
+        body.mobile-device .right-stack.mobile-page-active {
+            display: grid;
+            gap: 18px;
+        }
+
+        body.mobile-device .mobile-note {
+            display: block;
+        }
+
+        body.mobile-device .mobile-hidden {
+            display: none !important;
+        }
+
+        body.mobile-device.portrait .arena-shell.mobile-page-active .arena-meta,
+        body.mobile-device.portrait .arena-shell.mobile-page-active .touch-controls {
+            display: none;
+        }
+
+        body.mobile-device.portrait .arena-shell.mobile-page-active .canvas-wrap {
+            min-height: min(56vh, 420px);
+        }
+
+        body.mobile-device.portrait .arena-shell.mobile-page-active canvas,
+        body.mobile-device.portrait .arena-shell.mobile-page-active .overlay {
+            opacity: 0.16;
+            pointer-events: none;
+        }
+
+        body.mobile-device.portrait .arena-shell.mobile-page-active .rotate-device {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(4, 9, 18, 0.68);
+            backdrop-filter: blur(14px);
+        }
+
+        body.mobile-device.landscape .page {
+            width: min(100% - 12px, 1320px);
+            padding: 10px 0 12px;
+        }
+
+        body.mobile-device.landscape .arena-shell.mobile-page-active {
+            padding: 12px;
+            gap: 10px;
+        }
+
+        body.mobile-device.landscape .arena-shell.mobile-page-active .arena-meta {
+            margin-bottom: 8px;
+        }
+
+        body.mobile-device.landscape .arena-shell.mobile-page-active .touch-controls {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        body.mobile-device.landscape .arena-shell.mobile-page-active .touch-zone {
+            padding: 10px 12px;
+        }
+
+        body.mobile-device.landscape .arena-shell.mobile-page-active .touch-btn {
+            min-height: 54px;
         }
     </style>
 </head>
@@ -688,8 +987,14 @@
             </div>
         </header>
 
+        <nav class="mobile-nav" aria-label="Mobile Pong sections">
+            <button class="mobile-page-btn active" data-mobile-page-button="setup" type="button">Setup</button>
+            <button class="mobile-page-btn" data-mobile-page-button="arena" type="button">Arena</button>
+            <button class="mobile-page-btn" data-mobile-page-button="stats" type="button">Stats</button>
+        </nav>
+
         <section class="layout">
-            <div class="left-stack">
+            <div class="left-stack mobile-page-active" data-mobile-page="setup">
                 <section class="panel">
                     <div class="eyebrow">Launch Setup</div>
                     <div class="menu-copy">
@@ -703,6 +1008,7 @@
                                 <option value="single">1 Player Vs AI</option>
                                 <option value="dual">2 Player Local</option>
                             </select>
+                            <div id="mobileModeNote" class="mobile-note">Mobile uses single-player only.</div>
                         </div>
                         <div class="setting-group">
                             <label for="difficultySelect">AI Difficulty</label>
@@ -755,7 +1061,7 @@
                             <strong>Player One</strong>
                             <div><span class="key-label">W / S</span></div>
                         </div>
-                        <div class="control-card">
+                        <div class="control-card mobile-hidden">
                             <strong>Player Two</strong>
                             <div><span class="key-label">Arrow Up / Arrow Down</span></div>
                         </div>
@@ -767,7 +1073,7 @@
                 </section>
             </div>
 
-            <section class="arena-shell">
+            <section class="arena-shell" data-mobile-page="arena">
                 <div class="arena-meta">
                     <div class="hud-strip">
                         <div class="hud-box">
@@ -793,6 +1099,13 @@
 
                     <canvas id="gameCanvas" width="1600" height="900" aria-label="Neon Power Pong playfield"></canvas>
 
+                    <div class="rotate-device" id="rotateDevicePrompt" aria-live="polite">
+                        <div class="rotate-device-card">
+                            <strong>Rotate to landscape</strong>
+                            <p>Pong is playable on mobile in horizontal orientation only. Turn your phone sideways to open the arena controls and full playfield.</p>
+                        </div>
+                    </div>
+
                     <div id="overlay" class="overlay visible">
                         <div class="overlay-card">
                             <div class="eyebrow">Ready Room</div>
@@ -814,7 +1127,7 @@
                             <button class="touch-btn" data-touch="left-down" type="button">Down</button>
                         </div>
                     </div>
-                    <div class="touch-zone">
+                    <div class="touch-zone mobile-hidden">
                         <div class="touch-label"><strong>Right Paddle</strong><span>Use in 2 player mode or as backup</span></div>
                         <div class="touch-grid">
                             <button class="touch-btn" data-touch="right-up" type="button">Up</button>
@@ -824,7 +1137,7 @@
                 </div>
             </section>
 
-            <div class="right-stack">
+            <div class="right-stack" data-mobile-page="stats">
                 <section class="panel">
                     <strong>Scoreboard</strong>
                     <div class="scoreboard">

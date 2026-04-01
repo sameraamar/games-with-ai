@@ -28,6 +28,10 @@ const ui = {
     powerStackLeft: document.getElementById("powerStackLeft"),
     powerStackRight: document.getElementById("powerStackRight"),
     touchControls: document.getElementById("touchControls"),
+    mobileModeNote: document.getElementById("mobileModeNote"),
+    mobilePageButtons: Array.from(document.querySelectorAll("[data-mobile-page-button]")),
+    mobilePages: Array.from(document.querySelectorAll("[data-mobile-page]")),
+    arenaShell: document.querySelector(".arena-shell"),
 };
 
 const WORLD = { width: 1600, height: 900 };
@@ -37,6 +41,9 @@ const BASE_BALL_RADIUS = 16;
 const BADGE_RADIUS = 30;
 const MAX_ACTIVE_POWERS = 3;
 const TRAIL_LENGTH = 14;
+const MOBILE_BREAKPOINT = 920;
+const DESKTOP_STATUS_HINT = "Use W/S for left paddle. Arrow keys move the right paddle. Touch controls appear on smaller screens.";
+const MOBILE_STATUS_HINT = "Mobile is single-player only. Use the Arena tab for play and the touch pad for your paddle.";
 
 const difficultyProfiles = {
     cadet: { speed: 700, reaction: 0.22, error: 80, anticipation: 0.22 },
@@ -142,6 +149,7 @@ const state = {
         "right-down": false,
     },
     audio: null,
+    mobilePage: "setup",
 };
 
 function createPaddle(side, x, color) {
@@ -181,6 +189,80 @@ function createBall() {
         lastTouched: null,
         streakHits: 0,
     };
+}
+
+function isMobileViewport() {
+    const touchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    return touchDevice || window.innerWidth <= MOBILE_BREAKPOINT;
+}
+
+function isLandscapeMobile() {
+    return isMobileViewport() && window.matchMedia("(orientation: landscape)").matches;
+}
+
+function syncViewportClasses() {
+    document.body.classList.toggle("mobile-device", isMobileViewport());
+    document.body.classList.toggle("landscape", isLandscapeMobile());
+    document.body.classList.toggle("portrait", isMobileViewport() && !isLandscapeMobile());
+}
+
+function focusArenaOnMobile() {
+    if (isMobileViewport()) {
+        setMobilePage("arena");
+    }
+}
+
+async function requestMobileFullscreen() {
+    if (!isLandscapeMobile()) return;
+    if (document.fullscreenElement) return;
+
+    const target = ui.arenaShell ?? document.documentElement;
+    const requestFullscreen = target.requestFullscreen || target.webkitRequestFullscreen;
+
+    if (!requestFullscreen) return;
+
+    try {
+        await requestFullscreen.call(target, { navigationUI: "hide" });
+    } catch {
+    }
+}
+
+async function launchMatch(practiceMode = false) {
+    applyUiSettings();
+    focusArenaOnMobile();
+    await requestMobileFullscreen();
+    startMatch(practiceMode);
+}
+
+function syncResponsiveMode() {
+    syncViewportClasses();
+    const mobile = isMobileViewport();
+    if (mobile) {
+        ui.modeSelect.value = "single";
+        ui.modeSelect.disabled = true;
+        state.mode = "single";
+        if (ui.mobileModeNote) ui.mobileModeNote.hidden = false;
+        ui.statusBanner.textContent = MOBILE_STATUS_HINT;
+    } else {
+        ui.modeSelect.disabled = false;
+        if (ui.mobileModeNote) ui.mobileModeNote.hidden = true;
+        ui.statusBanner.textContent = DESKTOP_STATUS_HINT;
+    }
+    updateDerivedNames();
+}
+
+function setMobilePage(page) {
+    state.mobilePage = page;
+    const mobile = isMobileViewport();
+    for (const button of ui.mobilePageButtons) {
+        const active = button.dataset.mobilePageButton === page;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+    for (const section of ui.mobilePages) {
+        const active = !mobile || section.dataset.mobilePage === page;
+        section.classList.toggle("mobile-page-active", active);
+    }
 }
 
 function loadJson(key, fallback) {
@@ -341,6 +423,7 @@ function startMatch(practiceMode = false) {
     syncPaddleStats();
     resetBall(Math.random() > 0.5 ? 1 : -1, practiceMode);
     hideOverlay();
+    focusArenaOnMobile();
     setAnnouncement(practiceMode ? "Serve practice active." : "Match live.", 1.3);
     saveSettings();
 }
@@ -1026,6 +1109,7 @@ function playSound(frequency, duration, type) {
 }
 
 function applyUiSettings() {
+    syncResponsiveMode();
     state.mode = ui.modeSelect.value;
     state.difficulty = ui.difficultySelect.value;
     state.targetScore = Number(ui.targetScoreSelect.value);
@@ -1105,9 +1189,8 @@ function bindCanvasInteraction() {
 }
 
 function bindUi() {
-    ui.startButton.addEventListener("click", () => {
-        applyUiSettings();
-        startMatch(false);
+    ui.startButton.addEventListener("click", async () => {
+        await launchMatch(false);
     });
     ui.resetStatsButton.addEventListener("click", () => {
         state.bestRally = 0;
@@ -1115,13 +1198,11 @@ function bindUi() {
         updateHud();
         setAnnouncement("Best rally reset.", 0.9);
     });
-    ui.overlayStartButton.addEventListener("click", () => {
-        applyUiSettings();
-        startMatch(false);
+    ui.overlayStartButton.addEventListener("click", async () => {
+        await launchMatch(false);
     });
-    ui.overlayPracticeButton.addEventListener("click", () => {
-        applyUiSettings();
-        startMatch(true);
+    ui.overlayPracticeButton.addEventListener("click", async () => {
+        await launchMatch(true);
     });
     [ui.modeSelect, ui.difficultySelect, ui.targetScoreSelect, ui.effectsSelect, ui.soundToggle, ui.badgesToggle].forEach(control => {
         control.addEventListener("change", () => {
@@ -1130,13 +1211,25 @@ function bindUi() {
             setAnnouncement(single ? "Solo mode armed." : "Local duel armed.", 0.9);
         });
     });
-    window.addEventListener("resize", resizeCanvas);
+    for (const button of ui.mobilePageButtons) {
+        button.addEventListener("click", () => {
+            setMobilePage(button.dataset.mobilePageButton);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+    window.addEventListener("resize", () => {
+        resizeCanvas();
+        syncResponsiveMode();
+        setMobilePage(state.mobilePage);
+    });
 }
 
 function init() {
     restoreSettings();
     updateDerivedNames();
     resizeCanvas();
+    state.mobilePage = isLandscapeMobile() ? "arena" : state.mobilePage;
+    setMobilePage(state.mobilePage);
     bindKeyboard();
     bindTouchButtons();
     bindCanvasInteraction();

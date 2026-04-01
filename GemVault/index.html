@@ -138,6 +138,10 @@
             padding: 8px 0 16px;
         }
 
+        .mobile-page-nav {
+            display: none;
+        }
+
         .brand,
         .top-actions,
         .pill-row,
@@ -502,7 +506,7 @@
 
         .vault-header {
             position: relative;
-            z-index: 1;
+            z-index: 3;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -524,7 +528,7 @@
 
         .status-banner {
             position: relative;
-            z-index: 1;
+            z-index: 3;
             min-height: 48px;
             display: flex;
             align-items: center;
@@ -549,6 +553,7 @@
             position: absolute;
             inset: 0;
             pointer-events: none;
+            z-index: 2;
         }
 
         .vault-box {
@@ -979,6 +984,41 @@
                 width: min(100% - 16px, 1340px);
             }
 
+            .mobile-page-nav {
+                position: sticky;
+                top: 10px;
+                z-index: 6;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 10px;
+                margin: 0 0 16px;
+                padding: 10px;
+                border-radius: 22px;
+                background: rgba(255, 255, 255, 0.72);
+                border: 1px solid rgba(111, 156, 214, 0.18);
+                backdrop-filter: blur(14px);
+                box-shadow: 0 14px 30px rgba(82, 117, 171, 0.14);
+            }
+
+            .mobile-page-tab {
+                min-height: 46px;
+                border: 1px solid rgba(111, 156, 214, 0.16);
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.76);
+                color: var(--mist);
+                font: inherit;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            .mobile-page-tab.is-active {
+                background: linear-gradient(135deg, #ffcb58, #ff9d5c);
+                color: #5f3c17;
+                box-shadow: 0 12px 22px rgba(243, 155, 47, 0.2);
+            }
+
             .left-stack,
             .right-stack,
             .settings-grid,
@@ -994,6 +1034,20 @@
 
             .topbar {
                 display: grid;
+            }
+
+            .mobile-panel {
+                display: none;
+            }
+
+            .mobile-panel.is-mobile-active[data-mobile-panel="setup"],
+            .mobile-panel.is-mobile-active[data-mobile-panel="scores"] {
+                display: grid;
+                gap: 18px;
+            }
+
+            .mobile-panel.is-mobile-active[data-mobile-panel="play"] {
+                display: block;
             }
 
             .vault-stage {
@@ -1024,6 +1078,10 @@
                 height: 820px;
             }
 
+            .vault-stage::after {
+                display: none;
+            }
+
             .board {
                 inset: 178px 18px 24px;
             }
@@ -1049,8 +1107,14 @@
             </div>
         </header>
 
+        <nav class="mobile-page-nav" aria-label="Mobile game sections">
+            <button class="mobile-page-tab is-active" type="button" data-mobile-nav="setup">Setup</button>
+            <button class="mobile-page-tab" type="button" data-mobile-nav="play">Play</button>
+            <button class="mobile-page-tab" type="button" data-mobile-nav="scores">Scores</button>
+        </nav>
+
         <section class="layout">
-            <div class="left-stack">
+            <div class="left-stack mobile-panel is-mobile-active" data-mobile-panel="setup">
                 <section class="panel">
                     <div class="eyebrow">Launch Setup</div>
                     <div class="menu-copy">
@@ -1127,7 +1191,7 @@
                 </section>
             </div>
 
-            <section class="arena-shell">
+            <section class="arena-shell mobile-panel" data-mobile-panel="play">
                 <div class="arena-meta">
                     <div class="hud-strip">
                         <div class="hud-box">
@@ -1183,7 +1247,7 @@
                 </div>
             </section>
 
-            <div class="right-stack">
+            <div class="right-stack mobile-panel" data-mobile-panel="scores">
                 <section class="panel">
                     <strong>Scoreboard</strong>
                     <div class="player-grid">
