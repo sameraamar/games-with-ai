@@ -6,11 +6,11 @@ This repository currently contains static games that run in the browser with pla
 
 ## Playable Games
 
-### Learn Hebrew
+### Hebrew & Arabic Games
 
-- Path: `LearnHebrew/LearnHebrew.html`
+- Path: `HebrewArabicGames/HebrewArabicGames.html`
 - Type: single-file HTML app
-- Includes: letter learning, word matching, numbers, memory game, saved progress, speech synthesis fallback
+- Includes: Hebrew and Arabic letter learning, word matching, numbers, memory game, saved progress, speech synthesis fallback
 - Best fit: desktop and mobile browsers
 
 ### Iron Wolf 3D
@@ -19,6 +19,20 @@ This repository currently contains static games that run in the browser with pla
 - Type: static HTML + local JavaScript
 - Includes: canvas rendering, pointer lock, fullscreen, local settings and score storage, browser audio
 - Best fit: desktop browsers
+
+### Neon Power Pong
+
+- Path: `Pong/index.html`
+- Type: static HTML + local JavaScript
+- Includes: 1-player and 2-player modes, contact-based ball physics, badge powers, touch controls, local best-rally storage
+- Best fit: desktop and mobile browsers
+
+### Gem Vault
+
+- Path: `GemVault/index.html`
+- Type: static HTML + local JavaScript
+- Includes: 1-player and 2-player hot-seat modes, easy/medium/hard difficulty, dynamic box counts up to 10, local best-score storage
+- Best fit: desktop and mobile browsers
 
 ## GitHub Pages
 
@@ -30,7 +44,9 @@ After enabling Pages, the site should be available at:
 
 The current game routes will be:
 
-- `https://sameraamar.github.io/games-with-ai/LearnHebrew/LearnHebrew.html`
+- `https://sameraamar.github.io/games-with-ai/HebrewArabicGames/HebrewArabicGames.html`
+- `https://sameraamar.github.io/games-with-ai/Pong/`
+- `https://sameraamar.github.io/games-with-ai/GemVault/`
 - `https://sameraamar.github.io/games-with-ai/Wolfstien3D/`
 
 ## How To Enable Pages
@@ -48,11 +64,15 @@ The current game routes will be:
 You can open the HTML files directly in a browser, but GitHub Pages is the intended way to share them.
 
 - Root landing page: `index.html`
-- Learn Hebrew: `LearnHebrew/LearnHebrew.html`
+- Hebrew & Arabic Games: `HebrewArabicGames/HebrewArabicGames.html`
+- Neon Power Pong: `Pong/index.html`
+- Gem Vault: `GemVault/index.html`
 - Iron Wolf 3D: `Wolfstien3D/index.html`
 
 ## Notes
 
-- `LearnHebrew` uses the browser Speech Synthesis API when available.
+- `HebrewArabicGames` uses the browser Speech Synthesis API when available.
+- `Neon Power Pong` uses Canvas, localStorage, and optional Web Audio.
+- `GemVault` uses DOM animation, localStorage, and optional Web Audio.
 - `Iron Wolf 3D` uses browser features such as Pointer Lock, Fullscreen, Canvas, Web Audio, and localStorage.
 - Those features work better from a real hosted page than from the GitHub file viewer.

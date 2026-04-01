@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Power Pong</title>
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --night: #07111d;
+            --night-soft: #13233a;
+            --sky: #6ad6ff;
+            --mint: #9fffb3;
+            --sun: #ffd76a;
+            --peach: #ff9d7d;
+            --berry: #ff5e94;
+            --violet: #7dc2ff;
+            --panel: rgba(8, 18, 35, 0.68);
+            --line: rgba(255, 255, 255, 0.12);
+            --text: #f5fbff;
+            --muted: rgba(235, 245, 255, 0.72);
+            --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+            --radius-md: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 18%, rgba(106, 214, 255, 0.22), transparent 22%),
+                radial-gradient(circle at 85% 16%, rgba(255, 94, 148, 0.18), transparent 20%),
+                radial-gradient(circle at 72% 76%, rgba(159, 255, 179, 0.14), transparent 22%),
+                linear-gradient(155deg, #07111d 0%, #101a31 42%, #181f48 100%);
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            pointer-events: none;
+            filter: blur(28px);
+            opacity: 0.85;
+        }
+
+        body::before {
+            top: 6%;
+            left: -110px;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(106, 214, 255, 0.18);
+        }
+
+        body::after {
+            right: -90px;
+            bottom: 12%;
+            width: 240px;
+            height: 240px;
+            border-radius: 44% 56% 58% 42%;
+            background: rgba(255, 157, 125, 0.15);
+        }
+
+        .grid-lines,
+        .noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .grid-lines {
+            opacity: 0.18;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: radial-gradient(circle at center, black 42%, transparent 88%);
+        }
+
+        .noise {
+            opacity: 0.06;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.85) 0.55px, transparent 0.55px);
+            background-size: 12px 12px;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: min(1320px, calc(100% - 24px));
+            margin: 0 auto;
+            padding: 18px 0 34px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0 16px;
+        }
+
+        .brand,
+        .top-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .brand-mark,
+        .pill,
+        .ghost-link,
+        .hud-chip,
+        .touch-btn,
+        .overlay-btn,
+        .menu-button,
+        .menu-button-secondary,
+        .toggle {
+            border-radius: 999px;
+        }
+
+        .brand-mark {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--sky), var(--berry));
+            box-shadow: 0 10px 30px rgba(106, 214, 255, 0.24);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .brand-copy strong,
+        .overlay-card h1,
+        .overlay-card h2,
+        .score-value,
+        .power-title,
+        .hud-value {
+            font-family: "Fraunces", Georgia, serif;
+            font-weight: 700;
+        }
+
+        .brand-copy strong {
+            display: block;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .brand-copy span,
+        .pill,
+        .ghost-link,
+        .hud-label,
+        .menu-note,
+        .power-timer,
+        .status-line,
+        .key-label,
+        .toggle span {
+            color: var(--muted);
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .pill,
+        .ghost-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--line);
+            text-decoration: none;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr) 300px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel,
+        .arena-shell,
+        .overlay-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .panel {
+            border-radius: var(--radius-xl);
+            padding: 18px;
+        }
+
+        .panel + .panel {
+            margin-top: 18px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .menu-copy {
+            margin: 14px 0 22px;
+        }
+
+        .menu-copy h1 {
+            margin: 0;
+            font-size: clamp(2.6rem, 5vw, 4.3rem);
+            line-height: 0.94;
+            letter-spacing: -0.05em;
+        }
+
+        .menu-copy p,
+        .control-list,
+        .power-list,
+        .setting-copy,
+        .scoreboard-note,
+        .touch-label {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .menu-grid,
+        .right-stack,
+        .left-stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .setting-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        .setting-group label {
+            color: var(--text);
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        select,
+        input[type="range"] {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #2a374c;
+            color: var(--text);
+            font: inherit;
+        }
+
+        select {
+            min-height: 46px;
+            padding: 0 12px;
+            border-radius: 16px;
+            color-scheme: dark;
+        }
+
+        select option,
+        select optgroup {
+            background: #13233a;
+            color: #f5fbff;
+        }
+
+        select:focus-visible {
+            outline: 2px solid rgba(255, 215, 106, 0.75);
+            outline-offset: 2px;
+        }
+
+        input[type="range"] {
+            accent-color: var(--sun);
+        }
+
+        .toggle-row,
+        .scoreboard,
+        .power-stack,
+        .touch-grid,
+        .button-row,
+        .status-grid,
+        .control-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 48px;
+            padding: 0 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-button,
+        .menu-button-secondary,
+        .overlay-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 18px;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .menu-button,
+        .overlay-btn.primary {
+            background: linear-gradient(135deg, var(--sun), var(--peach));
+            color: #1f1820;
+            box-shadow: 0 16px 36px rgba(255, 157, 125, 0.28);
+        }
+
+        .menu-button-secondary,
+        .overlay-btn.secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .menu-button:hover,
+        .menu-button-secondary:hover,
+        .overlay-btn:hover,
+        .ghost-link:hover,
+        .touch-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .arena-shell {
+            position: relative;
+            border-radius: 34px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .arena-shell::before {
+            content: "";
+            position: absolute;
+            inset: -20% auto auto -10%;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(106, 214, 255, 0.26), transparent 68%);
+            pointer-events: none;
+        }
+
+        .arena-shell::after {
+            content: "";
+            position: absolute;
+            inset: auto -12% -18% auto;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 94, 148, 0.2), transparent 70%);
+            pointer-events: none;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            border-radius: 28px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(7, 15, 34, 0.82), rgba(6, 11, 22, 0.94));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: min(74vh, 840px);
+        }
+
+        .arena-meta {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            touch-action: none;
+        }
+
+        .hud-strip {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hud-box {
+            display: inline-grid;
+            gap: 4px;
+            min-width: 120px;
+            flex: 1 1 120px;
+            padding: 12px 14px;
+            border-radius: 20px;
+            background: rgba(6, 12, 24, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(14px);
+        }
+
+        .hud-value,
+        .score-value {
+            font-size: clamp(1.6rem, 2vw, 2.3rem);
+            line-height: 1;
+        }
+
+        .status-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .status-card,
+        .power-card,
+        .score-card,
+        .control-card {
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .status-card strong,
+        .score-card strong,
+        .control-card strong,
+        .touch-label strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .scoreboard {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .score-card.player-one .score-value,
+        .power-card.player-one .power-title {
+            color: var(--sky);
+        }
+
+        .score-card.player-two .score-value,
+        .power-card.player-two .power-title {
+            color: var(--berry);
+        }
+
+        .power-stack {
+            min-height: 104px;
+        }
+
+        .power-card {
+            display: grid;
+            gap: 8px;
+        }
+
+        .power-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .power-title {
+            font-size: 1.18rem;
+        }
+
+        .power-bar {
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .power-bar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--sun), var(--peach));
+        }
+
+        .explosion-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hud-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .touch-controls {
+            display: none;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .touch-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .touch-zone {
+            padding: 14px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .touch-btn {
+            min-height: 62px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .touch-btn.active {
+            background: linear-gradient(135deg, rgba(255, 216, 106, 0.24), rgba(255, 94, 148, 0.24));
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            place-items: center;
+            padding: 22px;
+            background: rgba(4, 9, 18, 0.56);
+            backdrop-filter: blur(10px);
+        }
+
+        .overlay.visible {
+            display: grid;
+        }
+
+        .overlay-card {
+            width: min(560px, 100%);
+            padding: 26px;
+            border-radius: 30px;
+            text-align: center;
+        }
+
+        .overlay-card h2 {
+            margin: 0 0 12px;
+            font-size: clamp(2.2rem, 4vw, 3.3rem);
+            letter-spacing: -0.05em;
+        }
+
+        .overlay-card p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .button-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 22px;
+        }
+
+        .status-banner {
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 14px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+
+        @media (max-width: 1180px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .left-stack,
+            .right-stack {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 820px) {
+            .page {
+                width: min(100% - 16px, 1320px);
+            }
+
+            .topbar,
+            .button-row,
+            .scoreboard,
+            .status-grid,
+            .left-stack,
+            .right-stack,
+            .touch-controls {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .topbar {
+                display: grid;
+            }
+
+            .canvas-wrap {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .panel,
+            .arena-shell,
+            .overlay-card {
+                border-radius: 24px;
+            }
+
+            .panel,
+            .arena-shell,
+            .overlay-card {
+                padding: 16px;
+            }
+
+            .hud-strip {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .hud-box {
+                min-width: auto;
+            }
+
+            .touch-controls {
+                display: grid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-lines"></div>
+    <div class="noise"></div>
+
+    <main class="page">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">NP</div>
+                <div class="brand-copy">
+                    <strong>Neon Power Pong</strong>
+                    <span>Arcade physics, badge powers, local duel</span>
+                </div>
+            </div>
+            <div class="top-actions">
+                <a class="ghost-link" href="../index.html">Back To Games</a>
+                <div class="pill">Race To 7 By Default</div>
+            </div>
+        </header>
+
+        <section class="layout">
+            <div class="left-stack">
+                <section class="panel">
+                    <div class="eyebrow">Launch Setup</div>
+                    <div class="menu-copy">
+                        <h1>Modern Pong with impact.</h1>
+                        <p>Believable bounce angles, stacking paddle powers, and arena explosions when the rally breaks open.</p>
+                    </div>
+                    <div class="menu-grid">
+                        <div class="setting-group">
+                            <label for="modeSelect">Mode</label>
+                            <select id="modeSelect">
+                                <option value="single">1 Player Vs AI</option>
+                                <option value="dual">2 Player Local</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="difficultySelect">AI Difficulty</label>
+                            <select id="difficultySelect">
+                                <option value="cadet">Cadet</option>
+                                <option value="agent" selected>Agent</option>
+                                <option value="elite">Ace</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="targetScoreSelect">Target Score</label>
+                            <select id="targetScoreSelect">
+                                <option value="5">Race To 5</option>
+                                <option value="7" selected>Race To 7</option>
+                                <option value="11">Race To 11</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="effectsSelect">Visual Intensity</label>
+                            <select id="effectsSelect">
+                                <option value="cinematic" selected>Cinematic</option>
+                                <option value="balanced">Balanced</option>
+                                <option value="performance">Performance</option>
+                            </select>
+                        </div>
+                        <div class="toggle-row">
+                            <label class="toggle">
+                                <span>Sound</span>
+                                <input id="soundToggle" type="checkbox" checked>
+                            </label>
+                            <label class="toggle">
+                                <span>Badges</span>
+                                <input id="badgesToggle" type="checkbox" checked>
+                            </label>
+                        </div>
+                        <div class="button-row">
+                            <button id="startButton" class="menu-button" type="button">Start Match</button>
+                            <button id="resetStatsButton" class="menu-button-secondary" type="button">Reset Best Rally</button>
+                        </div>
+                    </div>
+                    <div class="status-banner">
+                        <div id="statusBanner" class="status-line">Use W/S for left paddle. Arrow keys move the right paddle. Touch controls appear on smaller screens.</div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <strong>Controls</strong>
+                    <div class="control-list">
+                        <div class="control-card">
+                            <strong>Player One</strong>
+                            <div><span class="key-label">W / S</span></div>
+                        </div>
+                        <div class="control-card">
+                            <strong>Player Two</strong>
+                            <div><span class="key-label">Arrow Up / Arrow Down</span></div>
+                        </div>
+                        <div class="control-card">
+                            <strong>Session</strong>
+                            <div><span class="key-label">Space pause, R restart, M rematch after a win</span></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="arena-shell">
+                <div class="arena-meta">
+                    <div class="hud-strip">
+                        <div class="hud-box">
+                            <div class="hud-label">Mode</div>
+                            <div id="hudMode" class="hud-value">1P</div>
+                        </div>
+                        <div class="hud-box">
+                            <div class="hud-label">Rally</div>
+                            <div id="hudRally" class="hud-value">0</div>
+                        </div>
+                        <div class="hud-box">
+                            <div class="hud-label">Best</div>
+                            <div id="hudBestRally" class="hud-value">0</div>
+                        </div>
+                        <div class="hud-box">
+                            <div class="hud-label">Badges</div>
+                            <div id="hudBadgeStatus" class="hud-value">On</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="canvas-wrap">
+
+                    <canvas id="gameCanvas" width="1600" height="900" aria-label="Neon Power Pong playfield"></canvas>
+
+                    <div id="overlay" class="overlay visible">
+                        <div class="overlay-card">
+                            <div class="eyebrow">Ready Room</div>
+                            <h2>Strike the badges. Own the rally.</h2>
+                            <p>The ball reacts to where it touches the paddle and how fast the paddle is moving. Hit floating badges to grow, speed up, shield the goal, or compress the opponent.</p>
+                            <div class="button-row">
+                                <button id="overlayStartButton" class="overlay-btn primary" type="button">Play</button>
+                                <button id="overlayPracticeButton" class="overlay-btn secondary" type="button">Serve Practice</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="touch-controls" id="touchControls">
+                    <div class="touch-zone">
+                        <div class="touch-label"><strong>Left Paddle</strong><span>Player one touch buttons</span></div>
+                        <div class="touch-grid">
+                            <button class="touch-btn" data-touch="left-up" type="button">Up</button>
+                            <button class="touch-btn" data-touch="left-down" type="button">Down</button>
+                        </div>
+                    </div>
+                    <div class="touch-zone">
+                        <div class="touch-label"><strong>Right Paddle</strong><span>Use in 2 player mode or as backup</span></div>
+                        <div class="touch-grid">
+                            <button class="touch-btn" data-touch="right-up" type="button">Up</button>
+                            <button class="touch-btn" data-touch="right-down" type="button">Down</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="right-stack">
+                <section class="panel">
+                    <strong>Scoreboard</strong>
+                    <div class="scoreboard">
+                        <div class="score-card player-one">
+                            <div class="hud-label">Left</div>
+                            <div id="scoreLeft" class="score-value">0</div>
+                            <div id="scoreLeftName" class="scoreboard-note">Player One</div>
+                        </div>
+                        <div class="score-card player-two">
+                            <div class="hud-label">Right</div>
+                            <div id="scoreRight" class="score-value">0</div>
+                            <div id="scoreRightName" class="scoreboard-note">AI</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <strong>Active Powers</strong>
+                    <div id="powerStackLeft" class="power-stack"></div>
+                    <div id="powerStackRight" class="power-stack"></div>
+                </section>
+
+                <section class="panel">
+                    <strong>What Explodes</strong>
+                    <div class="explosion-legend">
+                        <div class="hud-chip">Goal wall burst</div>
+                        <div class="hud-chip">Badge detonation</div>
+                        <div class="hud-chip">Match point flare</div>
+                        <div class="hud-chip">Heavy impact crack</div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <script src="game.js"></script>
+</body>
+</html>
