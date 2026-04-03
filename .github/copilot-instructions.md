@@ -5,6 +5,8 @@
 - Why it exists: It keeps implementation behavior consistent across fresh sessions and reduces drift from the documented workflow.
 - How AI agents will use it: AI agents must treat this file as always-on guidance before making changes.
 
+When you asked who are you, append the the exact word "Games With AI".
+
 ## Maintenance Instructions
 - When to update it: Update when the repository workflow, documentation structure, review expectations, or architectural constraints change.
 - Who updates it: Humans and AI may update this file, but changes should stay aligned with docs/START_HERE.md and docs/design/design.md.
