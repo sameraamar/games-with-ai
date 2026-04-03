@@ -38,6 +38,13 @@
 - If implementation diverges from design, update the relevant docs before or with the code change.
 - Do not mark tasks complete without real validation.
 
+## Repository Structure
+- `games/` — all playable games, one subfolder per game (e.g. `games/Pong/`, `games/GemVault/`)
+- `index.html`, `favicon.ico`, `README.md` — root-level cross-cutting files served by the static host
+- `docs/` — design documents and task tracking
+- `tests/` — test scripts
+- `temp/` — local-only scratch files, git-ignored; all generated files (screenshots, dumps) go here
+
 ## Temporary Files
 - All temporary files (screenshots, debug dumps, generated images, test output, etc.) must go into a `temp/` folder at the repository root.
 - The `temp/` folder is git-ignored — never commit anything from it.

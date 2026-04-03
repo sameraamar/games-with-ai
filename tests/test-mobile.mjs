@@ -9,7 +9,7 @@ const context = await browser.newContext({
   screen: { width: 915, height: 412 },
 });
 const page = await context.newPage();
-await page.goto('http://127.0.0.1:8123/Pong/', { waitUntil: 'networkidle' });
+await page.goto('http://127.0.0.1:8123/games/Pong/', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1000);
 
 // Click Arena tab if visible
