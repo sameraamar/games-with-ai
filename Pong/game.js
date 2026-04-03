@@ -254,6 +254,7 @@ function syncResponsiveMode() {
 function setMobilePage(page) {
     state.mobilePage = page;
     const mobile = isMobileViewport();
+    document.body.classList.toggle("arena-page-active", mobile && page === "arena");
     for (const button of ui.mobilePageButtons) {
         const active = button.dataset.mobilePageButton === page;
         button.classList.toggle("active", active);
@@ -263,6 +264,7 @@ function setMobilePage(page) {
         const active = !mobile || section.dataset.mobilePage === page;
         section.classList.toggle("mobile-page-active", active);
     }
+    requestAnimationFrame(() => resizeCanvas());
 }
 
 function loadJson(key, fallback) {
@@ -1048,7 +1050,7 @@ function updateHud() {
     ui.scoreRight.textContent = String(state.scores.right);
     renderPowerStack(ui.powerStackLeft, state.paddles.left);
     renderPowerStack(ui.powerStackRight, state.paddles.right);
-    ui.touchControls.style.display = window.innerWidth <= 900 ? "grid" : "none";
+    ui.touchControls.style.display = isMobileViewport() ? "grid" : "none";
 }
 
 function renderPowerStack(container, paddle) {
@@ -1068,8 +1070,47 @@ function renderPowerStack(container, paddle) {
 
 function resizeCanvas() {
     const wrap = canvas.parentElement;
-    const width = wrap.clientWidth;
-    const height = width * (WORLD.height / WORLD.width);
+    const baseAspectRatio = WORLD.width / WORLD.height;
+    const arenaMeta = ui.arenaShell?.querySelector(".arena-meta");
+    let width = wrap.clientWidth;
+    let height = width / baseAspectRatio;
+
+    if (isLandscapeMobile()) {
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const viewportWidth = window.visualViewport?.width || window.innerWidth;
+        const activeArena = document.body.classList.contains("arena-page-active");
+        const safeBottom = activeArena ? 8 : 22;
+        const safeHorizontal = activeArena ? 6 : 14;
+        const shellRect = ui.arenaShell?.getBoundingClientRect();
+        const shellHeight = shellRect ? shellRect.height : viewportHeight;
+        const shellWidth = shellRect ? shellRect.width : viewportWidth;
+        const rawAvailableHeight = activeArena
+            ? viewportHeight - safeBottom
+            : Math.min(shellHeight - 10, viewportHeight - safeBottom);
+        let availableHeight = Math.max(180, rawAvailableHeight);
+
+        if (!activeArena && arenaMeta && getComputedStyle(arenaMeta).display !== "none") {
+            availableHeight -= arenaMeta.getBoundingClientRect().height + 6;
+        }
+
+        const availableWidth = activeArena
+            ? Math.max(280, viewportWidth - safeHorizontal * 2)
+            : Math.max(280, Math.min(shellWidth - safeHorizontal * 2, wrap.parentElement?.clientWidth || wrap.clientWidth));
+
+        const fittedWidth = Math.min(availableWidth, availableHeight * baseAspectRatio);
+        const fittedHeight = fittedWidth / baseAspectRatio;
+
+        width = fittedWidth;
+        height = fittedHeight;
+        wrap.style.height = `${height}px`;
+        wrap.style.width = `${width}px`;
+        wrap.style.maxWidth = "100%";
+    } else {
+        wrap.style.height = "";
+        wrap.style.width = "";
+        wrap.style.maxWidth = "";
+    }
+
     const dpr = window.devicePixelRatio || 1;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
@@ -1227,9 +1268,11 @@ function bindUi() {
 function init() {
     restoreSettings();
     updateDerivedNames();
+    syncViewportClasses();
     resizeCanvas();
     state.mobilePage = isLandscapeMobile() ? "arena" : state.mobilePage;
     setMobilePage(state.mobilePage);
+    resizeCanvas();
     bindKeyboard();
     bindTouchButtons();
     bindCanvasInteraction();
